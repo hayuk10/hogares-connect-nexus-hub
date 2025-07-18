@@ -3,14 +3,17 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { SearchFilters } from "@/components/SearchFilters";
 import { FinancingCTA } from "@/components/FinancingCTA";
 import { ChatBot } from "@/components/ChatBot";
+import { FinancialSimulator } from "@/components/FinancialSimulator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, User, Heart, Calendar } from "lucide-react";
+import { Bell, User, Heart, Calendar, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [showSimulator, setShowSimulator] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
 
   // Mock data - En producción vendría de una API
@@ -85,24 +88,25 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b shadow-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-3">
+    <div className="min-h-screen bg-gradient-subtle">
+      {/* Premium Header */}
+      <header className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 shadow-elegant">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 btn-trust-gradient rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">H</span>
+              <div className="w-10 h-10 btn-trust-gradient rounded-xl flex items-center justify-center shadow-md">
+                <span className="text-white font-bold">H</span>
               </div>
               <div>
-                <h1 className="text-lg font-bold text-primary">Hogares Connect</h1>
-                <p className="text-xs text-muted-foreground">Tu hogar ideal te espera</p>
+                <h1 className="text-xl font-bold text-foreground">Hogares Connect</h1>
+                <p className="text-sm text-accent font-medium">Premium Real Estate</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm">
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="relative">
                 <Bell className="h-5 w-5" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"></div>
               </Button>
               <Button variant="ghost" size="sm">
                 <Heart className="h-5 w-5" />
@@ -115,36 +119,75 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Search & Filters */}
-      <SearchFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        selectedFilters={selectedFilters}
-        onFilterToggle={handleFilterToggle}
-        onClearFilters={() => setSelectedFilters([])}
-      />
-
-      {/* Quick Stats */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>{properties.length} inmuebles disponibles</span>
-          <Badge variant="outline" className="text-accent">
-            Zona Sur Madrid
-          </Badge>
+      {/* Smart Search Bar */}
+      <div className="bg-card/80 backdrop-blur-sm border-b border-border/30">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por zona, tipo o precio..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border/50 bg-background/80 backdrop-blur-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-3 rounded-xl border-border/50"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {showFilters && (
+            <div className="mt-4 animate-fade-in">
+              <SearchFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedFilters={selectedFilters}
+                onFilterToggle={handleFilterToggle}
+                onClearFilters={() => setSelectedFilters([])}
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Financing CTA */}
+      {/* Quick Stats */}
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-foreground font-medium">{properties.length} propiedades</span>
+            <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">
+              Zona Sur Madrid
+            </Badge>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setShowSimulator(true)}
+            className="text-accent hover:text-accent/80"
+          >
+            Simular Financiación
+          </Button>
+        </div>
+      </div>
+
+      {/* Financing CTA - Premium */}
       <div className="container mx-auto px-4 mb-6">
         <FinancingCTA
-          onCalculateFinancing={handleCalculateFinancing}
+          onCalculateFinancing={() => setShowSimulator(true)}
           onContactFinanhogar={handleContactFinanhogar}
         />
       </div>
 
-      {/* Properties Grid */}
-      <div className="container mx-auto px-4 pb-20">
-        <div className="grid gap-4">
+      {/* Properties Grid - Enhanced */}
+      <div className="container mx-auto px-4 pb-24">
+        <div className="space-y-6">
           {properties.map((property) => (
             <PropertyCard
               key={property.id}
@@ -156,34 +199,44 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t shadow-elegant z-40">
-        <div className="grid grid-cols-4 gap-1 p-2">
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2">
-            <div className="w-6 h-6 btn-primary-gradient rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">🏠</span>
-            </div>
-            <span className="text-xs text-primary font-medium">Inicio</span>
-          </Button>
-          
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2">
-            <Heart className="h-5 w-5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Favoritos</span>
-          </Button>
-          
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2">
-            <Calendar className="h-5 w-5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Visitas</span>
-          </Button>
-          
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2">
-            <User className="h-5 w-5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Perfil</span>
-          </Button>
+      {/* Premium Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/30 shadow-elegant z-50">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-4 gap-1 p-3">
+            <Button variant="ghost" className="flex-col gap-1 h-auto py-3 text-primary">
+              <div className="w-7 h-7 btn-primary-gradient rounded-xl flex items-center justify-center shadow-sm">
+                <span className="text-white text-sm">🏠</span>
+              </div>
+              <span className="text-xs font-medium">Inicio</span>
+            </Button>
+            
+            <Button variant="ghost" className="flex-col gap-1 h-auto py-3">
+              <Heart className="h-6 w-6 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Favoritos</span>
+            </Button>
+            
+            <Button variant="ghost" className="flex-col gap-1 h-auto py-3">
+              <Calendar className="h-6 w-6 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Visitas</span>
+            </Button>
+            
+            <Button variant="ghost" className="flex-col gap-1 h-auto py-3">
+              <User className="h-6 w-6 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Perfil</span>
+            </Button>
+          </div>
         </div>
       </nav>
 
-      {/* ChatBot */}
+      {/* Financial Simulator Modal */}
+      {showSimulator && (
+        <FinancialSimulator 
+          onClose={() => setShowSimulator(false)}
+          onContactFinanhogar={handleContactFinanhogar}
+        />
+      )}
+
+      {/* Enhanced ChatBot */}
       <ChatBot />
     </div>
   );

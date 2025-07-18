@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Bed, Bath, Maximize } from "lucide-react";
+import { MapPin, Bed, Bath, Maximize, Heart, Share2, Calendar } from "lucide-react";
 
 interface PropertyCardProps {
   id: string;
@@ -31,65 +31,105 @@ export const PropertyCard = ({
   onScheduleVisit
 }: PropertyCardProps) => {
   return (
-    <Card className="overflow-hidden shadow-primary hover:shadow-accent transition-all duration-300 hover:scale-[1.02]">
-      <div className="relative">
+    <Card className="overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-500 hover:scale-[1.01] bg-card/80 backdrop-blur-sm border border-border/50">
+      <div className="relative group">
         <img
           src={imageUrl}
           alt={title}
-          className="w-full h-48 object-cover"
+          className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-700"
         />
-        {isNew && (
-          <Badge className="absolute top-2 left-2 btn-accent-gradient">
-            NUEVO
-          </Badge>
-        )}
+        
+        {/* Overlay Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Top Badges & Actions */}
+        <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+          <div className="flex gap-2">
+            {isNew && (
+              <Badge className="btn-accent-gradient text-white font-semibold shadow-md">
+                NUEVO
+              </Badge>
+            )}
+          </div>
+          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 bg-white/90 hover:bg-white">
+              <Heart className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 bg-white/90 hover:bg-white">
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Quick Action Button */}
+        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <Button 
+            size="sm"
+            onClick={() => onScheduleVisit(id)}
+            className="btn-primary-gradient shadow-lg"
+          >
+            <Calendar className="h-4 w-4 mr-1" />
+            Agendar
+          </Button>
+        </div>
       </div>
       
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          <div>
-            <h3 className="font-semibold text-lg text-foreground line-clamp-1">
+      <CardContent className="p-5">
+        <div className="space-y-4">
+          {/* Title & Location */}
+          <div className="space-y-2">
+            <h3 className="font-bold text-xl text-foreground line-clamp-2 leading-tight">
               {title}
             </h3>
-            <div className="flex items-center text-muted-foreground text-sm mt-1">
-              <MapPin className="h-4 w-4 mr-1" />
+            <div className="flex items-center text-muted-foreground text-sm">
+              <MapPin className="h-4 w-4 mr-1 text-accent" />
               {location}
             </div>
           </div>
           
-          <div className="text-2xl font-bold text-primary">
+          {/* Price */}
+          <div className="text-3xl font-bold text-primary">
             {price}
           </div>
           
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Bed className="h-4 w-4" />
-              {bedrooms}
-            </div>
-            <div className="flex items-center gap-1">
-              <Bath className="h-4 w-4" />
-              {bathrooms}
-            </div>
-            <div className="flex items-center gap-1">
-              <Maximize className="h-4 w-4" />
-              {area}
+          {/* Features */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                  <Bed className="h-4 w-4 text-accent" />
+                </div>
+                <span>{bedrooms}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                  <Bath className="h-4 w-4 text-accent" />
+                </div>
+                <span>{bathrooms}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                  <Maximize className="h-4 w-4 text-accent" />
+                </div>
+                <span>{area}</span>
+              </div>
             </div>
           </div>
           
-          <div className="flex gap-2 pt-2">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
             <Button
               variant="outline"
-              size="sm"
               onClick={() => onViewDetails(id)}
-              className="flex-1"
+              className="flex-1 border-border/50 hover:border-primary/50 transition-colors"
             >
               Ver detalles
             </Button>
             <Button
-              size="sm"
               onClick={() => onScheduleVisit(id)}
-              className="flex-1 btn-primary-gradient"
+              className="flex-1 btn-primary-gradient shadow-md hover:shadow-lg transition-shadow"
             >
+              <Calendar className="h-4 w-4 mr-2" />
               Agendar visita
             </Button>
           </div>

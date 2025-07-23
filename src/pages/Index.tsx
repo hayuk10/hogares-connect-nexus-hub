@@ -1,55 +1,32 @@
-import { useState } from "react";
-import { PropertyCard } from "@/components/PropertyCard";
+import { useState, useEffect } from "react";
+import { PropertyCard } from "@/components/cards/PropertyCard";
 import { SearchFilters } from "@/components/SearchFilters";
 import { FinancingCTA } from "@/components/FinancingCTA";
-import { ChatBot } from "@/components/ChatBot";
+import { ChatBot } from "@/components/chatbot/ChatBot";
 import { FinancialSimulator } from "@/components/FinancialSimulator";
+import { VisitForm } from "@/components/forms/VisitForm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, User, Heart, Calendar, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useProperties } from "@/hooks/useProperties";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [showSimulator, setShowSimulator] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showVisitForm, setShowVisitForm] = useState(false);
+  const [selectedPropertyForVisit, setSelectedPropertyForVisit] = useState<string>("");
   const { toast } = useToast();
-
-  // Mock data - En producción vendría de una API
-  const properties = [
-    {
-      id: "1",
-      title: "Piso moderno en Getafe Centro",
-      price: "285.000€",
-      location: "Getafe Centro",
-      bedrooms: 3,
-      bathrooms: 2,
-      area: "95m²",
-      imageUrl: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
-      isNew: true
-    },
-    {
-      id: "2", 
-      title: "Casa adosada con jardín",
-      price: "345.000€",
-      location: "Fuenlabrada",
-      bedrooms: 4,
-      bathrooms: 3,
-      area: "120m²",
-      imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-    },
-    {
-      id: "3",
-      title: "Ático con terraza panorámica",
-      price: "420.000€", 
-      location: "Leganés",
-      bedrooms: 2,
-      bathrooms: 2,
-      area: "85m²",
-      imageUrl: "https://images.unsplash.com/photo-1488972685288-c3fd157d7c7a"
-    }
-  ];
+  
+  // Use properties hook for data management
+  const { 
+    filteredProperties: properties, 
+    isLoading, 
+    error, 
+    filterPropertiesLocal 
+  } = useProperties();
 
   const handleFilterToggle = (filter: string) => {
     setSelectedFilters(prev => 
@@ -59,6 +36,11 @@ const Index = () => {
     );
   };
 
+  // Apply filters when search term or filters change
+  useEffect(() => {
+    filterPropertiesLocal(searchTerm, selectedFilters);
+  }, [searchTerm, selectedFilters, filterPropertiesLocal]);
+
   const handleViewDetails = (id: string) => {
     toast({
       title: "Abriendo detalles",
@@ -67,10 +49,8 @@ const Index = () => {
   };
 
   const handleScheduleVisit = (id: string) => {
-    toast({
-      title: "Agendando visita",
-      description: "Te contactaremos para coordinar la visita"
-    });
+    setSelectedPropertyForVisit(id);
+    setShowVisitForm(true);
   };
 
   const handleCalculateFinancing = () => {
@@ -187,16 +167,48 @@ const Index = () => {
 
       {/* Properties Grid - Enhanced */}
       <div className="container mx-auto px-4 pb-24">
-        <div className="space-y-6">
-          {properties.map((property) => (
-            <PropertyCard
-              key={property.id}
-              {...property}
-              onViewDetails={handleViewDetails}
-              onScheduleVisit={handleScheduleVisit}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="ml-3 text-muted-foreground">Cargando propiedades...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500">{error}</p>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()}
+              className="mt-4"
+            >
+              Reintentar
+            </Button>
+          </div>
+        ) : properties.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No se encontraron propiedades que coincidan con tu búsqueda.</p>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedFilters([]);
+              }}
+              className="mt-4"
+            >
+              Limpiar filtros
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {properties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                {...property}
+                onViewDetails={handleViewDetails}
+                onScheduleVisit={handleScheduleVisit}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Premium Bottom Navigation */}
@@ -236,8 +248,29 @@ const Index = () => {
         />
       )}
 
+      {/* Visit Form Modal */}
+      {showVisitForm && selectedPropertyForVisit && (
+        <VisitForm
+          propertyId={selectedPropertyForVisit}
+          propertyTitle={properties.find(p => p.id === selectedPropertyForVisit)?.title || ""}
+          onClose={() => {
+            setShowVisitForm(false);
+            setSelectedPropertyForVisit("");
+          }}
+          onSuccess={() => {
+            toast({
+              title: "¡Visita programada!",
+              description: "Te contactaremos para confirmar los detalles"
+            });
+          }}
+        />
+      )}
+
       {/* Enhanced ChatBot */}
-      <ChatBot />
+      <ChatBot 
+        onOpenSimulator={() => setShowSimulator(true)}
+        onContactFinanhogar={handleContactFinanhogar}
+      />
     </div>
   );
 };

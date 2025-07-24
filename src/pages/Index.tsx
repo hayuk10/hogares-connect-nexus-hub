@@ -5,19 +5,44 @@ import { FinancingCTA } from "@/components/FinancingCTA";
 import { ChatBot } from "@/components/chatbot/ChatBot";
 import { FinancialSimulator } from "@/components/FinancialSimulator";
 import { VisitForm } from "@/components/forms/VisitForm";
+import { FinancingForm } from "@/components/forms/FinancingForm";
+import { UserProfileModal } from "@/components/UserProfileModal";
+import { Inversores } from "@/pages/Inversores";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, User, Heart, Calendar, Search, Filter } from "lucide-react";
+import { Bell, User, Heart, Calendar, Search, Filter, Crown, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useProperties } from "@/hooks/useProperties";
+import { User as UserType } from "@/types";
+
+// Mock current user - In real app, this would come from auth context
+const mockCurrentUser: UserType = {
+  id: "user1",
+  name: "Juan Pérez",
+  email: "juan@email.com",
+  phone: "600123456",
+  userType: "usuario", // Can be changed to test different user types
+  isPremium: false,
+  isVIP: false,
+  favorites: ["1", "3"],
+  visits: [],
+  referidos: [],
+  referralCode: "JUAN123",
+  registrationDate: new Date("2024-01-15"),
+  totalReferrals: 2
+};
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [showSimulator, setShowSimulator] = useState(false);
+  const [showFinancingForm, setShowFinancingForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showVisitForm, setShowVisitForm] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [showInvestorsPage, setShowInvestorsPage] = useState(false);
   const [selectedPropertyForVisit, setSelectedPropertyForVisit] = useState<string>("");
+  const [currentUser, setCurrentUser] = useState<UserType>(mockCurrentUser);
   const { toast } = useToast();
   
   // Use properties hook for data management
@@ -61,11 +86,51 @@ const Index = () => {
   };
 
   const handleContactFinanhogar = () => {
+    setShowFinancingForm(true);
+  };
+
+  const handleToggleFavorite = (propertyId: string) => {
+    setCurrentUser(prev => ({
+      ...prev,
+      favorites: prev.favorites.includes(propertyId)
+        ? prev.favorites.filter(id => id !== propertyId)
+        : [...prev.favorites, propertyId]
+    }));
+    
     toast({
-      title: "Contacto FinanHogar",
-      description: "Un asesor te contactará en breve"
+      title: currentUser.favorites.includes(propertyId) ? "Quitado de favoritos" : "Añadido a favoritos",
+      description: "Se ha actualizado tu lista de favoritos"
     });
   };
+
+  const handleUpgradeToVIP = () => {
+    setCurrentUser(prev => ({ ...prev, userType: "vip", isVIP: true, isPremium: true }));
+    toast({
+      title: "¡Bienvenido al área VIP!",
+      description: "Ahora tienes acceso a propiedades exclusivas"
+    });
+    setShowUserProfile(false);
+  };
+
+  const handleUpgradeToInvestor = () => {
+    setCurrentUser(prev => ({ ...prev, userType: "inversor", isPremium: true }));
+    toast({
+      title: "¡Eres inversor premium!",
+      description: "Acceso completo a oportunidades de inversión"
+    });
+    setShowUserProfile(false);
+  };
+
+  // Show investors page if selected
+  if (showInvestorsPage) {
+    return (
+      <Inversores 
+        currentUser={currentUser}
+        onUpgradeToInvestor={handleUpgradeToInvestor}
+        onBack={() => setShowInvestorsPage(false)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -88,11 +153,30 @@ const Index = () => {
                 <Bell className="h-5 w-5" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"></div>
               </Button>
-              <Button variant="ghost" size="sm">
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="relative"
+              >
                 <Heart className="h-5 w-5" />
+                {currentUser.favorites.length > 0 && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {currentUser.favorites.length}
+                  </div>
+                )}
               </Button>
-              <Button variant="ghost" size="sm">
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowUserProfile(true)}
+                className="relative"
+              >
                 <User className="h-5 w-5" />
+                {(currentUser.isVIP || currentUser.userType === 'inversor') && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"></div>
+                )}
               </Button>
             </div>
           </div>
@@ -205,6 +289,10 @@ const Index = () => {
                 {...property}
                 onViewDetails={handleViewDetails}
                 onScheduleVisit={handleScheduleVisit}
+                onToggleFavorite={handleToggleFavorite}
+                isFavorite={currentUser.favorites.includes(property.id)}
+                currentUser={currentUser}
+                showInvestmentInfo={currentUser.userType === 'inversor'}
               />
             ))}
           </div>
@@ -214,7 +302,7 @@ const Index = () => {
       {/* Premium Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/30 shadow-elegant z-50">
         <div className="container mx-auto">
-          <div className="grid grid-cols-4 gap-1 p-3">
+          <div className="grid grid-cols-5 gap-1 p-3">
             <Button variant="ghost" className="flex-col gap-1 h-auto py-3 text-primary">
               <div className="w-7 h-7 btn-primary-gradient rounded-xl flex items-center justify-center shadow-sm">
                 <span className="text-white text-sm">🏠</span>
@@ -222,8 +310,16 @@ const Index = () => {
               <span className="text-xs font-medium">Inicio</span>
             </Button>
             
-            <Button variant="ghost" className="flex-col gap-1 h-auto py-3">
+            <Button 
+              variant="ghost" 
+              className="flex-col gap-1 h-auto py-3 relative"
+            >
               <Heart className="h-6 w-6 text-muted-foreground" />
+              {currentUser.favorites.length > 0 && (
+                <div className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {currentUser.favorites.length}
+                </div>
+              )}
               <span className="text-xs text-muted-foreground">Favoritos</span>
             </Button>
             
@@ -231,9 +327,37 @@ const Index = () => {
               <Calendar className="h-6 w-6 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Visitas</span>
             </Button>
+
+            {/* Conditional VIP/Investor access */}
+            {(currentUser.userType === 'inversor' || currentUser.isPremium) ? (
+              <Button 
+                variant="ghost" 
+                className="flex-col gap-1 h-auto py-3"
+                onClick={() => setShowInvestorsPage(true)}
+              >
+                <TrendingUp className="h-6 w-6 text-accent" />
+                <span className="text-xs text-accent font-medium">Inversión</span>
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="flex-col gap-1 h-auto py-3"
+                onClick={handleUpgradeToInvestor}
+              >
+                <TrendingUp className="h-6 w-6 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Invertir</span>
+              </Button>
+            )}
             
-            <Button variant="ghost" className="flex-col gap-1 h-auto py-3">
+            <Button 
+              variant="ghost" 
+              className="flex-col gap-1 h-auto py-3 relative"
+              onClick={() => setShowUserProfile(true)}
+            >
               <User className="h-6 w-6 text-muted-foreground" />
+              {(currentUser.isVIP || currentUser.userType === 'inversor') && (
+                <Crown className="h-3 w-3 text-accent absolute -top-1 -right-1" />
+              )}
               <span className="text-xs text-muted-foreground">Perfil</span>
             </Button>
           </div>
@@ -270,7 +394,33 @@ const Index = () => {
       <ChatBot 
         onOpenSimulator={() => setShowSimulator(true)}
         onContactFinanhogar={handleContactFinanhogar}
+        onNavigateToInvestors={() => setShowInvestorsPage(true)}
+        onNavigateToVIP={handleUpgradeToVIP}
+        onScheduleVisit={() => setShowVisitForm(true)}
       />
+
+      {/* Financing Form Modal */}
+      {showFinancingForm && (
+        <FinancingForm
+          onClose={() => setShowFinancingForm(false)}
+          onSuccess={() => {
+            toast({
+              title: "¡Solicitud enviada!",
+              description: "Un asesor de FinanHogar te contactará pronto"
+            });
+          }}
+        />
+      )}
+
+      {/* User Profile Modal */}
+      {showUserProfile && (
+        <UserProfileModal
+          user={currentUser}
+          onClose={() => setShowUserProfile(false)}
+          onUpgradeToVIP={handleUpgradeToVIP}
+          onUpgradeToInvestor={handleUpgradeToInvestor}
+        />
+      )}
     </div>
   );
 };

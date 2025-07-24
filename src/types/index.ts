@@ -1,19 +1,67 @@
 // Core types for Hogares Connect application
+
+// User types and authentication
+export type UserType = 'usuario' | 'asesor' | 'referido' | 'vip' | 'inversor';
+
+export interface User {
+  id: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  userType: UserType;
+  isPremium: boolean;
+  isVIP: boolean;
+  favorites: string[];
+  visits: Visit[];
+  referidos: string[]; // Array of user IDs referred by this user
+  referralCode: string; // Unique code for this user
+  registrationDate: Date;
+  totalReferrals: number;
+  premiumExpiry?: Date;
+}
+
+// Enhanced Property interface
 export interface Property {
   id: string;
   title: string;
-  price: string;
+  price: number; // Changed from string to number for calculations
+  priceDisplay: string; // Formatted price for display
   location: string;
   bedrooms: number;
   bathrooms: number;
-  area: string;
+  area: number; // Changed from string to number
+  areaDisplay: string; // Formatted area for display
   imageUrl: string;
+  images?: string[]; // Multiple images
   isNew?: boolean;
+  isReserved?: boolean;
+  isExclusive?: boolean;
   description?: string;
   features?: string[];
-  propertyType?: 'apartment' | 'house' | 'penthouse' | 'studio';
+  propertyType: 'apartment' | 'house' | 'penthouse' | 'studio' | 'villa' | 'townhouse';
   energyRating?: string;
   yearBuilt?: number;
+  
+  // Investment-specific fields
+  monthlyRent?: number;
+  roi?: number; // Return on investment percentage
+  rentalYield?: number;
+  investmentRisk?: 'low' | 'medium' | 'high';
+  
+  // VIP-specific fields
+  exclusiveAccess?: boolean;
+  personalAgent?: string;
+  luxuryFeatures?: string[];
+  
+  // Location details
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  neighborhood?: string;
+  city: string;
+  province: string;
+  postalCode?: string;
 }
 
 export interface SearchFilters {
@@ -54,13 +102,23 @@ export interface ChatMessage {
   quickReplies?: string[];
 }
 
-export interface User {
+// Referral system
+export interface ReferralStats {
+  totalReferrals: number;
+  successfulReferrals: number;
+  pendingReferrals: number;
+  totalEarnings: number;
+  currentMonthReferrals: number;
+}
+
+export interface ReferralReward {
   id: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  favorites: string[];
-  visits: Visit[];
+  referrerId: string;
+  referredUserId: string;
+  amount: number;
+  status: 'pending' | 'paid' | 'cancelled';
+  createdAt: Date;
+  paidAt?: Date;
 }
 
 // API Response types
@@ -71,33 +129,60 @@ export interface APIResponse<T> {
   error?: string;
 }
 
-// Future expansion types (commented for scalability)
-/*
-export interface VIPProperty extends Property {
-  exclusiveAccess: boolean;
-  personalAgent: string;
-  luxuryFeatures: string[];
-}
-
+// Investment properties
 export interface InvestmentProperty extends Property {
-  roi: number;
-  rentalYield: number;
   investmentType: 'flip' | 'rental' | 'commercial';
+  expectedROI: number;
+  minimumInvestment: number;
+  totalUnits: number;
+  soldUnits: number;
+  projectCompletion: number; // Percentage
+  developerId: string;
+  developerName: string;
 }
 
+// Home services (future expansion)
 export interface HomeService {
   id: string;
   name: string;
-  category: 'cleaning' | 'maintenance' | 'security' | 'utilities';
-  price: string;
+  category: 'cleaning' | 'maintenance' | 'security' | 'utilities' | 'moving' | 'insurance';
+  price: number;
+  priceDisplay: string;
   provider: string;
+  rating: number;
+  reviews: number;
+  description: string;
+  imageUrl: string;
+  isAvailable: boolean;
+  coverage: string[]; // Areas where service is available
 }
 
-export interface Referral {
+// Notification system
+export interface Notification {
   id: string;
-  referrerId: string;
-  refereeEmail: string;
-  status: 'pending' | 'completed';
-  reward: number;
+  userId: string;
+  type: 'visit_confirmed' | 'new_property' | 'price_drop' | 'referral_reward' | 'financing_approved';
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: Date;
+  actionUrl?: string;
+  imageUrl?: string;
 }
-*/
+
+// Advanced search filters
+export interface AdvancedSearchFilters extends SearchFilters {
+  pricePerM2Range?: [number, number];
+  yearBuiltRange?: [number, number];
+  hasParking?: boolean;
+  hasTerrace?: boolean;
+  hasGarden?: boolean;
+  hasPool?: boolean;
+  hasElevator?: boolean;
+  energyRatingMin?: string;
+  nearMetro?: boolean;
+  nearSchools?: boolean;
+  nearShops?: boolean;
+  investmentOnly?: boolean;
+  vipOnly?: boolean;
+}

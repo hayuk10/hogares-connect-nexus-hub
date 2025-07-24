@@ -2,34 +2,45 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Bed, Bath, Square, Calendar, Eye, Star } from "lucide-react";
-import { Property } from "@/types";
+import { Heart, MapPin, Bed, Bath, Square, Calendar, Eye, Star, TrendingUp, Lock } from "lucide-react";
+import { Property, User } from "@/types";
+import { formatPrice, formatPercentage } from "@/utils";
 
 interface PropertyCardProps extends Property {
   onViewDetails: (id: string) => void;
   onScheduleVisit: (id: string) => void;
   onToggleFavorite?: (id: string) => void;
   isFavorite?: boolean;
+  currentUser?: User;
+  showInvestmentInfo?: boolean;
 }
 
 export const PropertyCard = ({ 
   id,
   title,
-  price, 
+  price,
+  priceDisplay,
   location,
   bedrooms,
   bathrooms,
   area,
+  areaDisplay,
   imageUrl,
   isNew,
+  isReserved,
+  isExclusive,
   description,
   features,
   propertyType,
   energyRating,
+  roi,
+  investmentRisk,
   onViewDetails,
   onScheduleVisit,
   onToggleFavorite,
-  isFavorite = false
+  isFavorite = false,
+  currentUser,
+  showInvestmentInfo = false
 }: PropertyCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isFav, setIsFav] = useState(isFavorite);
@@ -115,6 +126,17 @@ export const PropertyCard = ({
               Nuevo
             </Badge>
           )}
+          {isReserved && (
+            <Badge className="bg-destructive text-white font-medium">
+              Reservado
+            </Badge>
+          )}
+          {isExclusive && (
+            <Badge className="bg-gradient-to-r from-accent to-accent-light text-white font-medium">
+              <Lock className="h-3 w-3 mr-1" />
+              Exclusivo
+            </Badge>
+          )}
           {energyRating && (
             <Badge variant="outline" className="bg-white/90 text-gray-900 border-white/50">
               Energía {energyRating}
@@ -125,7 +147,7 @@ export const PropertyCard = ({
         {/* Price badge */}
         <div className="absolute top-3 right-3">
           <Badge className="bg-primary text-white font-bold text-sm px-3 py-1">
-            {price}
+            {priceDisplay || formatPrice(price)}
           </Badge>
         </div>
       </div>
@@ -156,7 +178,7 @@ export const PropertyCard = ({
           </div>
           <div className="flex items-center gap-1">
             <Square className="h-4 w-4" />
-            <span>{area}</span>
+            <span>{areaDisplay || `${area} m²`}</span>
           </div>
         </div>
 
@@ -175,6 +197,31 @@ export const PropertyCard = ({
             {features.length > 3 && (
               <Badge variant="outline" className="text-xs bg-muted/50 text-muted-foreground border-border/50">
                 +{features.length - 3} más
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Investment info for investors */}
+        {showInvestmentInfo && currentUser?.userType === 'inversor' && roi && (
+          <div className="flex items-center gap-4 p-3 bg-primary/5 rounded-lg">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">
+                ROI: {formatPercentage(roi)}
+              </span>
+            </div>
+            {investmentRisk && (
+              <Badge 
+                variant="outline" 
+                className={`text-xs ${
+                  investmentRisk === 'low' ? 'border-green-500 text-green-700' :
+                  investmentRisk === 'medium' ? 'border-yellow-500 text-yellow-700' :
+                  'border-red-500 text-red-700'
+                }`}
+              >
+                {investmentRisk === 'low' ? 'Bajo riesgo' :
+                 investmentRisk === 'medium' ? 'Riesgo medio' : 'Alto riesgo'}
               </Badge>
             )}
           </div>

@@ -8,9 +8,18 @@ import { ChatMessage } from "@/types";
 interface ChatBotProps {
   onOpenSimulator?: () => void;
   onContactFinanhogar?: () => void;
+  onNavigateToInvestors?: () => void;
+  onNavigateToVIP?: () => void;
+  onScheduleVisit?: () => void;
 }
 
-export const ChatBot = ({ onOpenSimulator, onContactFinanhogar }: ChatBotProps) => {
+export const ChatBot = ({ 
+  onOpenSimulator, 
+  onContactFinanhogar,
+  onNavigateToInvestors,
+  onNavigateToVIP,
+  onScheduleVisit
+}: ChatBotProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);

@@ -6,7 +6,10 @@ import { MessageCircle, Send, X, Minimize2, Phone, Mail, Calculator } from "luci
 import { ChatMessage } from "@/types";
 
 interface ChatBotProps {
-  onOpenSimulator?: () => void;
+  onClose?: () => void;
+  currentUser?: any;
+  onOpenCalculator?: () => void;
+  onOpenInvestors?: () => void;
   onContactFinanhogar?: () => void;
   onNavigateToInvestors?: () => void;
   onNavigateToVIP?: () => void;
@@ -14,7 +17,10 @@ interface ChatBotProps {
 }
 
 export const ChatBot = ({ 
-  onOpenSimulator, 
+  onClose,
+  currentUser,
+  onOpenCalculator,
+  onOpenInvestors,
   onContactFinanhogar,
   onNavigateToInvestors,
   onNavigateToVIP,
@@ -95,7 +101,7 @@ export const ChatBot = ({
     }
     
     if (message.includes("simular") || message.includes("calculadora")) {
-      onOpenSimulator?.();
+      onOpenCalculator?.();
       return {
         text: "¡Perfecto! He abierto nuestro simulador financiero para que puedas calcular tu cuota mensual personalizada.",
         quickReplies: ["Necesito asesoramiento", "Ver más propiedades"]
@@ -205,7 +211,10 @@ export const ChatBot = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  onClose?.();
+                }}
                 className="h-6 w-6 p-0 text-white hover:bg-white/20"
                 aria-label="Cerrar chat"
               >

@@ -1,176 +1,83 @@
-import { Property, SearchFilters, APIResponse } from '@/types';
-
-// Mock data - In production this would come from API
-const mockProperties: Property[] = [
-  {
-    id: "1",
-    title: "Piso moderno en Getafe Centro",
-    price: 285000,
-    priceDisplay: "285.000€",
-    location: "Getafe Centro",
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 95,
-    areaDisplay: "95m²",
-    imageUrl: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
-    isNew: true,
-    description: "Moderno piso en el centro de Getafe con todas las comodidades",
-    features: ["Aire acondicionado", "Parking", "Terraza", "Ascensor"],
-    propertyType: "apartment",
-    energyRating: "B",
-    yearBuilt: 2020,
-    city: "Getafe",
-    province: "Madrid",
-    roi: 5.2,
-    investmentRisk: "low" as const
-  },
-  {
-    id: "2", 
-    title: "Casa adosada con jardín",
-    price: 345000,
-    priceDisplay: "345.000€",
-    location: "Fuenlabrada",
-    bedrooms: 4,
-    bathrooms: 3,
-    area: 120,
-    areaDisplay: "120m²",
-    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    description: "Espaciosa casa adosada con jardín privado",
-    features: ["Jardín", "Parking", "Chimenea", "Trastero"],
-    propertyType: "house",
-    energyRating: "A",
-    yearBuilt: 2018,
-    city: "Fuenlabrada",
-    province: "Madrid",
-    roi: 4.8,
-    investmentRisk: "low" as const
-  },
-  {
-    id: "3",
-    title: "Ático con terraza panorámica",
-    price: 420000,
-    priceDisplay: "420.000€", 
-    location: "Leganés",
-    bedrooms: 2,
-    bathrooms: 2,
-    area: 85,
-    areaDisplay: "85m²",
-    imageUrl: "https://images.unsplash.com/photo-1488972685288-c3fd157d7c7a",
-    description: "Exclusivo ático con vistas panorámicas de Madrid",
-    features: ["Terraza", "Vistas", "Aire acondicionado", "Ascensor"],
-    propertyType: "penthouse",
-    energyRating: "A",
-    yearBuilt: 2019,
-    city: "Leganés",
-    province: "Madrid",
-    roi: 6.1,
-    investmentRisk: "medium" as const,
-    isExclusive: true
-  }
-];
-
-// Simulate API delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { Property, APIResponse, SearchFilters } from '@/types';
+import { simulateApiDelay } from '@/utils';
+import { MockDataService } from './mockDataService';
 
 export class PropertiesService {
   static async getAllProperties(): Promise<APIResponse<Property[]>> {
-    await delay(800); // Simulate API call
-    
+    await simulateApiDelay();
     try {
+      const properties = await MockDataService.getAllProperties();
       return {
-        data: mockProperties,
+        data: properties,
         success: true,
-        message: "Properties fetched successfully"
+        message: 'Propiedades cargadas exitosamente'
       };
     } catch (error) {
       return {
         data: [],
         success: false,
-        error: "Failed to fetch properties"
+        error: 'Error al cargar propiedades'
+      };
+    }
+  }
+
+  static async getFeaturedProperties(): Promise<APIResponse<Property[]>> {
+    await simulateApiDelay();
+    try {
+      const properties = await MockDataService.getFeaturedProperties();
+      return {
+        data: properties,
+        success: true,
+        message: 'Propiedades destacadas cargadas exitosamente'
+      };
+    } catch (error) {
+      return {
+        data: [],
+        success: false,
+        error: 'Error al cargar propiedades destacadas'
+      };
+    }
+  }
+
+  static async searchProperties(filters: {
+    searchTerm?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    propertyType?: string;
+    neighborhood?: string;
+  }): Promise<APIResponse<Property[]>> {
+    await simulateApiDelay();
+    try {
+      const properties = await MockDataService.searchProperties(filters);
+      return {
+        data: properties,
+        success: true,
+        message: 'Búsqueda completada exitosamente'
+      };
+    } catch (error) {
+      return {
+        data: [],
+        success: false,
+        error: 'Error en la búsqueda'
       };
     }
   }
 
   static async getPropertyById(id: string): Promise<APIResponse<Property | null>> {
-    await delay(500);
-    
+    await simulateApiDelay();
     try {
-      const property = mockProperties.find(p => p.id === id);
+      const property = await MockDataService.getPropertyById(id);
       return {
-        data: property || null,
+        data: property,
         success: true,
-        message: property ? "Property found" : "Property not found"
+        message: property ? 'Propiedad encontrada' : 'Propiedad no encontrada'
       };
     } catch (error) {
       return {
         data: null,
         success: false,
-        error: "Failed to fetch property"
+        error: 'Error al buscar la propiedad'
       };
     }
-  }
-
-  static async searchProperties(filters: SearchFilters): Promise<APIResponse<Property[]>> {
-    await delay(600);
-    
-    try {
-      let filtered = [...mockProperties];
-
-      if (filters.location) {
-        filtered = filtered.filter(p => 
-          p.location.toLowerCase().includes(filters.location!.toLowerCase())
-        );
-      }
-
-      if (filters.bedrooms) {
-        filtered = filtered.filter(p => p.bedrooms >= filters.bedrooms!);
-      }
-
-      if (filters.bathrooms) {
-        filtered = filtered.filter(p => p.bathrooms >= filters.bathrooms!);
-      }
-
-      if (filters.propertyType) {
-        filtered = filtered.filter(p => p.propertyType === filters.propertyType);
-      }
-
-      return {
-        data: filtered,
-        success: true,
-        message: `Found ${filtered.length} properties`
-      };
-    } catch (error) {
-      return {
-        data: [],
-        success: false,
-        error: "Search failed"
-      };
-    }
-  }
-
-  // Future API endpoints (ready for real implementation)
-  static async getFeaturedProperties(): Promise<APIResponse<Property[]>> {
-    await delay(400);
-    
-    const featured = mockProperties.filter(p => p.isNew || p.propertyType === 'penthouse');
-    return {
-      data: featured,
-      success: true,
-      message: "Featured properties fetched"
-    };
-  }
-
-  static async getPropertiesByLocation(location: string): Promise<APIResponse<Property[]>> {
-    await delay(500);
-    
-    const byLocation = mockProperties.filter(p => 
-      p.location.toLowerCase().includes(location.toLowerCase())
-    );
-    
-    return {
-      data: byLocation,
-      success: true,
-      message: `Properties in ${location} fetched`
-    };
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Property, SearchFilters } from '@/types';
+import { Property, SearchFilters, AdvancedSearchFilters } from '@/types';
 import { PropertiesService } from '@/services/propertiesService';
 
 export const useProperties = () => {
@@ -112,6 +112,86 @@ export const useProperties = () => {
     setFilteredProperties(filtered);
   }, [properties]);
 
+  // Advanced filter properties
+  const filterPropertiesAdvanced = useCallback((filters: AdvancedSearchFilters) => {
+    setIsLoading(true);
+    
+    let filtered = properties;
+
+    // Location filter
+    if (filters.location?.trim()) {
+      const term = filters.location.toLowerCase();
+      filtered = filtered.filter(property =>
+        property.location.toLowerCase().includes(term) ||
+        property.neighborhood?.toLowerCase().includes(term)
+      );
+    }
+
+    // Price range
+    if (filters.minPrice !== undefined) {
+      filtered = filtered.filter(property => property.price >= filters.minPrice!);
+    }
+    if (filters.maxPrice !== undefined) {
+      filtered = filtered.filter(property => property.price <= filters.maxPrice!);
+    }
+
+    // Property type
+    if (filters.propertyType) {
+      filtered = filtered.filter(property => property.propertyType === filters.propertyType);
+    }
+
+    // Bedrooms and bathrooms
+    if (filters.bedrooms !== undefined) {
+      filtered = filtered.filter(property => property.bedrooms >= filters.bedrooms!);
+    }
+    if (filters.bathrooms !== undefined) {
+      filtered = filtered.filter(property => property.bathrooms >= filters.bathrooms!);
+    }
+
+    // Features
+    if (filters.hasParking) {
+      filtered = filtered.filter(property => 
+        property.features?.some(f => f.toLowerCase().includes('garaje'))
+      );
+    }
+    if (filters.hasTerrace) {
+      filtered = filtered.filter(property => 
+        property.features?.some(f => f.toLowerCase().includes('terraza'))
+      );
+    }
+    if (filters.hasGarden) {
+      filtered = filtered.filter(property => 
+        property.features?.some(f => f.toLowerCase().includes('jardín'))
+      );
+    }
+    if (filters.hasPool) {
+      filtered = filtered.filter(property => 
+        property.features?.some(f => f.toLowerCase().includes('piscina'))
+      );
+    }
+    if (filters.hasElevator) {
+      filtered = filtered.filter(property => 
+        property.features?.some(f => f.toLowerCase().includes('ascensor'))
+      );
+    }
+    if (filters.nearMetro) {
+      filtered = filtered.filter(property => 
+        property.features?.some(f => f.toLowerCase().includes('metro'))
+      );
+    }
+
+    // Special filters
+    if (filters.investmentOnly) {
+      filtered = filtered.filter(property => property.monthlyRent && property.roi);
+    }
+    if (filters.vipOnly) {
+      filtered = filtered.filter(property => property.exclusiveAccess || property.isExclusive);
+    }
+
+    setFilteredProperties(filtered);
+    setIsLoading(false);
+  }, [properties]);
+
   // Get featured properties
   const getFeaturedProperties = useCallback(async () => {
     setIsLoading(true);
@@ -147,6 +227,7 @@ export const useProperties = () => {
     searchProperties,
     getProperty,
     filterPropertiesLocal,
+    filterPropertiesAdvanced,
     getFeaturedProperties
   };
 };
